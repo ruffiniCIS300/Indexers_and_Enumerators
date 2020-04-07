@@ -1,7 +1,8 @@
 ﻿/* Dictionary.cs
- * Author: Rod Howell
+ * Author: Nick Ruffini
  */
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,7 +16,7 @@ namespace Ksu.Cis300.NameLookup
     /// </summary>
     /// <typeparam name="TKey">The key type.</typeparam>
     /// <typeparam name="TValue">The value type.</typeparam>
-    public class Dictionary<TKey, TValue> 
+    public class Dictionary<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>
     {
         /// <summary>
         /// The initial size of the table.
@@ -47,6 +48,71 @@ namespace Ksu.Cis300.NameLookup
         /// Gets the number of keys in the dictionary.
         /// </summary>
         public int Count { get; private set; }
+
+        /// <summary>
+        /// Public Indexer for the dictionary!
+        /// </summary>
+        /// <param name="k"> Key that is used in the get/set operations </param>
+        /// <returns> The value associated with the key! </returns>
+        public TValue this[TKey k]
+        {
+            get
+            {
+                TValue outValue;
+                bool result = TryGetValue(k, out outValue);
+                if (result == false)
+                {
+                    throw new KeyNotFoundException();
+                }
+                else
+                {
+                    return outValue;
+                }
+            }
+            set
+            {
+                CheckKey(k);
+                int location = GetLocation(k);
+                LinkedListCell<KeyValuePair<TKey, TValue>> cell = GetCell(k, _elements[location]);
+                if (cell == null)
+                {
+                    // check
+                    Insert(k, value, location);
+                }
+                else
+                {
+                    cell.Data = new KeyValuePair<TKey, TValue>(k, value);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Property that returns each key in the dictionary!
+        /// </summary>
+        public IEnumerable<TKey> Keys
+        {
+            get
+            {
+                foreach(KeyValuePair<TKey, TValue> pair in this)
+                {
+                    yield return pair.Key;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Property that returns each value in the dictionary!
+        /// </summary>
+        public IEnumerable<TValue> Values
+        {
+            get
+            {
+                foreach (KeyValuePair<TKey, TValue> pair in this)
+                {
+                    yield return pair.Value;
+                }
+            }
+        }
 
         /// <summary>
         /// Checks to see if the given key is null, and if so, throws an
@@ -171,6 +237,32 @@ namespace Ksu.Cis300.NameLookup
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Enumerator that we actually use to iterate through _elements and yield return the KVP's!
+        /// </summary>
+        /// <returns> KVP's of _elements </returns>
+        public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
+        {
+            for(int i = 0; i < _elements.Length; i++)
+            {
+                LinkedListCell<KeyValuePair<TKey, TValue>> temp = _elements[i];
+                while (temp != null)
+                {
+                    yield return temp.Data;
+                    temp = temp.Next;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Old Enumerator that simply refers to the new one
+        /// </summary>
+        /// <returns> IEnumerator<KeyValuePair<TKey, TValue>> returned by GetEnumerator() </returns>
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
 }

@@ -1,5 +1,5 @@
 ﻿/* UserInterface.cs
- * Author: Rod Howell
+ * Author: Nick Ruffini
  */
 using System;
 using System.Collections.Generic;
@@ -114,13 +114,12 @@ namespace Ksu.Cis300.NameLookup
         {
             if (uxSaveDialog.ShowDialog() == DialogResult.OK)
             {
-                List<KeyValuePair<string, FrequencyAndRank>> list = new List<KeyValuePair<string, FrequencyAndRank>>();
-                //_nameInformation.CopyTo(list);
+
                 try
                 {
                     using (StreamWriter output = new StreamWriter(uxSaveDialog.FileName))
                     {
-                        foreach (KeyValuePair<string, FrequencyAndRank> p in list)
+                        foreach (KeyValuePair<string, FrequencyAndRank> p in _nameInformation)
                         {
                             output.WriteLine(p.Key);
                             output.WriteLine(p.Value.Frequency);
